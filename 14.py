@@ -25,7 +25,7 @@ def show(points):
     global W, H
     for y in range(H):
         for x in range(W):
-            if any(x == px and y == py for px, py, _, _ in points):
+            if any(x == px and y == py for px, py in points):
                 print("#", end="")
             else:
                 print(".", end="")
@@ -44,23 +44,18 @@ def count(points_set):
     br = sum(1 for x, y in points_set if x >= (W + 1) // 2 and y >= (H + 1) // 2)
     return tl, tr, bl, br
 
-def check_all_points_connected(points_set: set):
-    visited = set()
-    def dfs(x, y):
-        if (x, y) in visited:
-            return
-        visited.add((x, y))
-        for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-            nx, ny = x + dx, y + dy
-            if 0 <= nx < W and 0 <= ny < H and (nx, ny) not in visited:
-                dfs(nx, ny)
-    start = points_set.pop()
-    dfs(start[0], start[1])
-    print("percent", len(visited) / len(points_set))
-    return len(visited) == len(points_set)
+def longest_chain(points_set: set):
+    longest = 0
+    current = 0
+    for y in range(H):
+        for x in range(W):
+            if (x, y) in points_set:
+                current +=1
+                longest = max(longest, current)
+            else: 
+                current = 0
+    return longest
 
-W = 101
-H = 103
 
 def step(points, s):
     new_points = set()
@@ -68,15 +63,20 @@ def step(points, s):
         new_points.add(new_pos(p, s))
     return new_points
 
+W = 101
+H = 103
+
 new_points = step(points, 100)
 s1 = prod(count(new_points))
 print(s1)
 
-for s in range(1000):
+for s in range(20000):
     new_points = step(points, s)
-    print(s)
-    if check_all_points_connected(new_points):
+    if s % 1000 == 0:
+        print("step:", s)
+    if longest_chain(new_points) > 20:
         show(new_points)
+        print("TREE FOUND chain:", longest_chain(new_points), "At:", s)
         break
 else: 
     print("not found")
